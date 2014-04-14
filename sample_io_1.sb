@@ -1,0 +1,21 @@
+dim rc	// result code
+
+// initialize I/O and events.
+rc = gpiosetfunc(1, 2, 2)
+
+rc = gpiosetfunc(2, 1, 0)
+rc = gpiobindevent(0, 2, 0)
+rc = gpiobindevent(1, 2, 1)
+
+// event handlers
+function button0Release()
+	gpiowrite(1, 0)
+endfunc 1
+onevent evgpiochan0 call button0Release
+
+function button0Push()
+	gpiowrite(1, 1)
+endfunc 1
+onevent evgpiochan1 call button0Push
+
+waitevent

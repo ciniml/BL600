@@ -1,0 +1,17 @@
+dim rc	// result code
+
+// initialize I/O and events.
+rc = gpiosetfunc(1, 2, 2)
+
+// initialize Timers
+timerstart(0, 500, 1)
+
+// event handlers
+dim _output as integer
+function handleTimer0()
+	_output = _output ^ 1
+	gpiowrite(1, _output)
+endfunc 1
+onevent evtmr0 call handleTimer0
+
+waitevent
