@@ -37,12 +37,14 @@ rc = BleSvcRegBattery(GetBatteryLeft(), 0)
 rc = BleSvcRegDevInfo("hoge", "BL600Test", "", "", "", "", "", "")
 //
 Dim mdVal As Integer
+Dim mdCccd As Integer
 Dim attr$ As String
 Dim hThermoService As Integer
 rc = BleSvcCommit(1, BleHandleUuid16(0xfff0), hThermoService)
 Dim hThermoValue As Integer
-mdVal = BleAttrMetaData(1, 0, 4, 0, rc)
-rc = BleCharNew(0x02, BleHandleUuid16(0xfff1), mdVal, 0, 0)
+mdVal  = BleAttrMetaData(1, 0, 4, 0, rc)
+mdCccd = BleAttrMetaData(1, 1, 2, 0, rc)
+rc = BleCharNew(0x12, BleHandleUuid16(0xfff1), mdVal, mdCccd, 0)
 rc = BleEncode32(attr$, 0xff, 0)
 rc = BleCharCommit(hThermoService, attr$, hThermoValue)
 Print "hThermoValue: ", hThermoValue
@@ -75,6 +77,13 @@ Function HandleBleMessage(ByVal msgId As Integer, ByVal ctx As Integer) As Integ
 EndFunc 1
 OnEvent EVBLEMSG Call HandleBleMessage
 
+Function HandleBleCccd(ByVal charHandle As Integer, ByVal value As Integer) As Integer
+	If charHandle == hThermoValue Then
+		PRINT "\nCCCD:", value
+	EndIf
+EndFunc 1
+OnEvent EVCHARCCCD Call HandleBleCccd
+
 Function ReadTemperature()
 	Dim temperature As Integer
 	temperature = (gpioRead(4)*12000 - 51200)/(1024*10)
@@ -85,7 +94,8 @@ EndFunc temperature
 Function HandleTimer0()
 	Dim a$ As String
 	rc = BleEncode32(a$, ReadTemperature(), 0)
-	rc = BleCharValueWrite(hThermoValue, a$)
+	//rc = BleCharValueWrite(hThermoValue, a$)
+	rc = BleCharValueNotify(hThermoValue, a$)
 	Print "\nrc: ", rc
 	rc = BleSvcSetBattLevel(GetBatteryLeft())
 EndFunc 1

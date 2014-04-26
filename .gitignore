@@ -1,3 +1,8 @@
 UwTerminal.aut.txt
 *.uwc
 smartBASIC_Sample_Apps/
+Board/Gerber/BL600BaseBoard.zip
+Board/Gerber/BL600BaseBoard-drl.rpt
+Board/Gerber/BL600BaseBoard_map.pho
+Board/*.bak
+Board/-cache.lib
