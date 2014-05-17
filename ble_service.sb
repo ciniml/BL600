@@ -1,0 +1,72 @@
+Dim rc	// result code
+Dim advReport$
+Dim scanReport$
+Dim peerAddr$
+Dim connection
+
+// initialize services
+rc = BleGapSvcInit("hoge dev", 0, 256, 500000, 1000000, 4000000, 0)
+//
+Dim mdVal As Integer
+Dim mdCccd As Integer
+Dim attr$ As String
+Dim hThermoService As Integer
+rc = BleSvcCommit(1, BleHandleUuid16(0xfff0), hThermoService)
+Dim hThermoValue As Integer
+mdVal  = BleAttrMetaData(1, 0, 4, 0, rc)
+rc = BleCharNew(0x02, BleHandleUuid16(0xfff1), mdVal, 0, 0)
+rc = BleEncode32(attr$, 0xff, 0)
+rc = BleCharCommit(hThermoService, attr$, hThermoValue)
+Print "hThermoValue: ", hThermoValue
+
+// start advertisement
+advReport$ = ""
+scanReport$ = ""
+peerAddr$ = ""
+rc = BleAdvRptInit(advReport$, 0x06, 1, 10)
+rc = BleAdvRptsCommit(advReport$, scanReport$)
+rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+
+// Event handlers
+Function HandleBleMessage(ByVal msgId As Integer, ByVal ctx As Integer) As Integer
+	Select msgId
+	Case 0
+		Print "\nConnect ", ctx
+		rc = BleAuthenticate(ctx)
+		connection = ctx
+		rc = BleAdvertStop()
+		// start update timer
+		timerStart(0, 500, 1)
+	Case 1
+		Print "\nDisconnect ", ctx
+		connection = 0
+		// stop update timer
+		timerCancel(0)
+		// start advertisement
+		rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+	Case Else
+		Print "\nUnknown message ", msgId
+	EndSelect
+EndFunc 1
+OnEvent EVBLEMSG Call HandleBleMessage
+
+Function HandleBleCccd(ByVal charHandle As Integer, ByVal value As Integer) As Integer
+	If charHandle == hThermoValue Then
+		PRINT "\nCCCD:", value
+	EndIf
+EndFunc 1
+OnEvent EVCHARCCCD Call HandleBleCccd
+
+Dim counter As Integer
+counter = 0
+// initialize timers
+Function HandleTimer0()
+	Dim a$ As String
+	rc = BleEncode32(a$, counter, 0)
+	counter = counter + 1
+	rc = BleCharValueWrite(hThermoValue, a$)
+EndFunc 1
+OnEvent EvTmr0 Call HandleTimer0
+
+// Wait events
+WaitEvent

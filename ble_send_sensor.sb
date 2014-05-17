@@ -1,0 +1,105 @@
+Dim rc	// result code
+Dim advReport$
+Dim scanReport$
+Dim peerAddr$
+Dim connection
+
+Function GetBatteryLeft()
+	Dim batteryLeft As Integer
+	batteryLeft = ReadPwrSupplyMv() * 100 / 3000
+	If batteryLeft > 100 Then
+		batteryLeft = 100
+	EndIf
+EndFunc batteryLeft
+
+
+// initialize I/O and events.
+rc = gpioSetFunc(1, 2, 2)
+rc = gpioSetFunc(2, 1, 0)
+rc = gpioSetFunc(4, 3, 0x13)
+rc = gpioBindEvent(0, 2, 0)
+rc = gpioBindEvent(1, 2, 1)
+
+// event handlers
+function button0Release()
+	gpioWrite(1, 0)
+endfunc 1
+onevent evgpiochan0 call button0Release
+function button0Push()
+	gpioWrite(1, 1)
+	Reset(0)
+endfunc 1
+onevent evgpiochan1 call button0Push
+
+// initialize services
+rc = BleGapSvcInit("BL600", 0, 256, 500000, 1000000, 4000000, 0)
+rc = BleSvcRegBattery(GetBatteryLeft(), 0)
+rc = BleSvcRegDevInfo("hoge", "BL600Test", "", "", "", "", "", "")
+//
+Dim mdVal As Integer
+Dim mdCccd As Integer
+Dim attr$ As String
+Dim hThermoService As Integer
+rc = BleSvcCommit(1, BleHandleUuid16(0xfff0), hThermoService)
+Dim hThermoValue As Integer
+mdVal  = BleAttrMetaData(1, 0, 4, 0, rc)
+mdCccd = BleAttrMetaData(1, 1, 2, 0, rc)
+rc = BleCharNew(0x12, BleHandleUuid16(0xfff1), mdVal, mdCccd, 0)
+rc = BleEncode32(attr$, 0xff, 0)
+rc = BleCharCommit(hThermoService, attr$, hThermoValue)
+Print "hThermoValue: ", hThermoValue
+
+// start advertisement
+advReport$ = ""
+scanReport$ = ""
+peerAddr$ = ""
+rc = BleAdvRptInit(advReport$, 0x06, 1, 10)
+rc = BleAdvRptsCommit(advReport$, scanReport$)
+rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+
+// Event handlers
+Function HandleBleMessage(ByVal msgId As Integer, ByVal ctx As Integer) As Integer
+	Select msgId
+	Case 0
+		Print "\nConnect ", ctx
+		rc = BleAuthenticate(ctx)
+		connection = ctx
+		rc = BleAdvertStop()
+		timerStart(0, 500, 1)
+	Case 1
+		Print "\nDisconnect ", ctx
+		connection = 0
+		timerCancel(0)
+		rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+	Case Else
+		Print "\nUnknown message ", msgId
+	EndSelect
+EndFunc 1
+OnEvent EVBLEMSG Call HandleBleMessage
+
+Function HandleBleCccd(ByVal charHandle As Integer, ByVal value As Integer) As Integer
+	If charHandle == hThermoValue Then
+		PRINT "\nCCCD:", value
+	EndIf
+EndFunc 1
+OnEvent EVCHARCCCD Call HandleBleCccd
+
+Function ReadTemperature()
+	Dim temperature As Integer
+	temperature = (gpioRead(4)*12000 - 51200)/(1024*10)
+	Print "\nTemp:", temperature
+EndFunc temperature
+
+// initialize timers
+Function HandleTimer0()
+	Dim a$ As String
+	rc = BleEncode32(a$, ReadTemperature(), 0)
+	//rc = BleCharValueWrite(hThermoValue, a$)
+	rc = BleCharValueNotify(hThermoValue, a$)
+	Print "\nrc: ", rc
+	rc = BleSvcSetBattLevel(GetBatteryLeft())
+EndFunc 1
+OnEvent EvTmr0 Call HandleTimer0
+
+// Wait events
+WaitEvent
