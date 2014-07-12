@@ -1,0 +1,35 @@
+dim rc	// result code
+
+// initialize I/O and events.
+rc = gpiosetfunc(10, 2, 2)
+rc = gpiosetfunc(11, 2, 2)
+rc = gpiosetfunc(12, 2, 2)
+rc = gpiosetfunc(13, 2, 2)
+rc = gpiosetfunc(14, 2, 2)
+rc = gpiosetfunc(15, 2, 2)
+rc = gpiosetfunc(16, 2, 2)
+rc = gpiosetfunc(17, 2, 2)
+rc = gpiosetfunc(18, 2, 2)
+rc = gpiosetfunc(19, 2, 2)
+
+// initialize Timers
+timerstart(0, 2000, 1)
+
+// event handlers
+dim _output as integer
+function handleTimer0()
+	_output = _output ^ 1
+	gpiowrite(10, _output)
+    gpiowrite(11, _output)
+    gpiowrite(12, _output)
+    gpiowrite(13, _output)
+    gpiowrite(14, _output)
+    gpiowrite(15, _output)
+    gpiowrite(16, _output)
+    gpiowrite(17, _output)
+    gpiowrite(18, _output)
+    gpiowrite(19, _output)
+endfunc 1
+onevent evtmr0 call handleTimer0
+
+waitevent
