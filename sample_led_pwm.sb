@@ -1,0 +1,27 @@
+dim rc	// result code
+
+// configure PWM.
+dim pwmMinFreq
+pwmMinFreq = 60
+rc = gpioConfigPwm(pwmMinFreq, 16666)
+
+// initialize I/O and events.
+rc = gpioSetFunc(17, 2, 0x2)
+gpioWrite(17, 0)
+
+// initialize Timers
+timerStart(0, 500, 1)
+
+// event handlers
+dim _output as integer
+function handleTimer0()
+	_output = _output + 16
+	if _output > 1024 then
+		_output = 0
+	endif
+	gpioWrite(17, _output)
+endfunc 1
+onevent evtmr0 call handleTimer0
+
+waitevent
+
