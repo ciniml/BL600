@@ -1,0 +1,27 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+name: Smart Basic
+scopeName: source.smartbasic
+fileTypes: ["Smart Basic"]
+uuid: 9c34a9a2-3b15-431f-973d-9898fda34f69
+patterns:
+- match: "//.+$"
+  name: "comment.line.source.smartbasic"
+  comment: "Comment"
+- match: "(?i:integer|string)"
+  name: "storage.type.source.smartbasic"
+  comment: "Type name"
+- match: "(?i:dim|if|else|endif|function|endfunc|waitevent|onevent|call|as|byval|byref|select|case|endselect)"
+  name: "keyword.source.smartbasic"
+  comment: "Syntax keyword"
+- match: "(?:=|<|>|\\+|-|^)"
+  name: "keyword.operator.source.smartbasic"
+  comment: "Operator"
+- match: "\\\"[^\\\"]*\\\""
+  name: "string.quoted.source.smartbasic"
+  comment: "String literals"
+- match: "(?i:[A-Z_][0-9A-Z_]*)"
+  name: "variable.source.smartbasic"
+  comment: "String literals"
+- match: "(?:0x)?\\d+"
+  name: "constant.numeric.source.smartbasic"
+  comment: "Numeric constants"
