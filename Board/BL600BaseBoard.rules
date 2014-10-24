@@ -1,0 +1,97 @@
+
+(rules PCB BL600BaseBoard
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 1)
+    (layer_rule F.Cu
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.6)
+    )
+    (layer_rule In1.Cu
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 1.6)
+    )
+  )
+  (rule
+    (width 300.0)
+    (clear 250.2)
+    (clear 150.0 (type smd_to_turn_gap))
+    (clear 62.6 (type smd_smd))
+  )
+  (padstack "Via[0-1]_889:635_um"
+    (shape
+      (circle F.Cu 889.0 0.0 0.0)
+    )
+    (shape
+      (circle In1.Cu 889.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_889:635_um" "Via[0-1]_889:635_um" default
+  )
+  (via 
+    "Via[0-1]_889:635_um-kicad_default" "Via[0-1]_889:635_um" default
+  )
+  (via 
+    "Via[0-1]_889:635_um-Power" "Via[0-1]_889:635_um" default
+  )
+  (via_rule
+    default "Via[0-1]_889:635_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_889:635_um-kicad_default"
+  )
+  (via_rule
+    Power "Via[0-1]_889:635_um-Power"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 300.0)
+    )
+    (circuit 
+      (use_layer F.Cu In1.Cu)
+    )
+  )
+  (class "kicad_default"
+    "/SIO_0" "/SIO_1" "/SIO_10" "/SIO_11" "/SIO_12" "/SIO_13" "/SIO_14" "/SIO_15"
+    "/SIO_16" "/SIO_17" "/SIO_18" "/SIO_19" "/SIO_2" "/SIO_20" "/SIO_21" "/SIO_22"
+    "/SIO_23" "/SIO_24" "/SIO_25" "/SIO_26" "/SIO_27" "/SIO_28" "/SIO_29" "/SIO_3"
+    "/SIO_30" "/SIO_4" "/SIO_5" "/SIO_6" "/SIO_7" "/SIO_8" "/SIO_9" /SWDCLK
+    /nRESET "Net-<U1-Pad30>"
+    (clearance_class default)
+    (via_rule kicad_default)
+    (rule
+      (width 300.0)
+    )
+    (circuit 
+      (use_layer F.Cu In1.Cu)
+    )
+  )
+  (class Power
+    GND "/GND_CN" /VCC
+    (clearance_class default)
+    (via_rule Power)
+    (rule
+      (width 500.0)
+    )
+    (circuit 
+      (use_layer F.Cu In1.Cu)
+    )
+  )
+)
