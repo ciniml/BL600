@@ -1,0 +1,391 @@
+Dim rc	// result code
+Dim advReport$
+Dim scanReport$
+Dim peerAddr$
+Dim connection
+
+#define DEBUG_VERBOSE 3
+#define DEBUG_INFO 1
+#define DEBUG_NONE 0
+#define DEBUG DEBUG_INFO
+
+#define MAX_POWER_VOLTAGE	3000
+function getBatteryLeft()
+	dim batteryLeft as integer
+	batteryLeft = readPwrSupplyMv() * 100 / MAX_POWER_VOLTAGE
+	if batteryLeft > 100 then
+		batteryLeft = 100
+	endif
+endfunc batteryLeft
+
+
+// initialize SPI
+dim spiHandle
+#define PIN_SPI_CHIPSELECT	13
+
+rc = spiOpen(0, 4000000, 0, spiHandle)
+Print "\nspiOpen: ", rc, spiHandle
+rc = gpioSetFunc(PIN_SPI_CHIPSELECT, 2, 1)	// Chip Select
+
+function readTemperature(byref thermocouple as integer, byref base as integer) as integer
+	dim read$, write$
+	gpioWrite(PIN_SPI_CHIPSELECT, 0)
+	rc = spiRead(read$, 4)
+	gpioWrite(PIN_SPI_CHIPSELECT, 1)
+
+	thermocouple = (strGetChr(read$, 0) << 6) | (strGetChr(read$, 1) >> 2)
+	if (thermocouple & 0x2000) != 0 then
+		thermocouple = (thermocouple & ~0x2000) - 0x4000
+	endif
+	base = (strGetChr(read$, 2) << 4) | (strGetChr(read$, 3) >> 4)
+	if (base & 0x800) != 0 then
+		base = (base & ~0x800) - 0x1000
+	endif
+	if DEBUG >= 3 then 
+		print "\nraw         : ", strHexize$(read$)
+		print "\nThermocouple: ", thermocouple
+		print "\nBase        : ", base
+	endif
+endfunc 1
+
+// configure PWM to output SSR control signals.
+#define PWM_MIN_FREQ	50
+#define PWM_MAX_COUNT	(1000000/PWM_MIN_FREQ)
+dim actualFreq as integer
+actualFreq = PWM_MIN_FREQ
+rc = gpioConfigPwm(actualFreq, PWM_MAX_COUNT)
+if DEBUG >= DEBUG_INFO then
+	print "\nPWMFreq: ";actualFreq
+endif
+
+// 
+#define PIN_HEATER_UPPER	18
+#define PIN_HEATER_LOWER	19
+rc = gpioSetFunc(PIN_HEATER_UPPER, 2, 0x2)
+rc = gpioSetFunc(PIN_HEATER_LOWER, 2, 0x2)
+gpioWrite(PIN_HEATER_UPPER, 0)
+gpioWrite(PIN_HEATER_LOWER, 0)
+// 
+sub setHeaterOutput(byval heaterPin, byval output)
+	gpioWrite(heaterPin, output)
+endsub
+
+// initialize services
+rc = bleGapSvcInit("ReflowOven", 0, 256, 500000, 1000000, 4000000, 0)
+rc = bleSvcRegBattery(GetBatteryLeft(), 0)
+rc = bleSvcRegDevInfo("@ciniml", "ReflowOven", "", "", "", "", "", "")
+//
+dim hService as integer
+rc = bleSvcCommit(1, bleHandleUuid16(0xfff0), hService)
+
+#define BLE_CHAR_BROADCAST			0x01
+#define BLE_CHAR_READABLE			0x02
+#define BLE_CHAR_WRITABLE_WO_RES	0x04
+#define BLE_CHAR_WRITABLE 			0x08
+#define BLE_CHAR_NOTIFIABLE			0x10
+#define BLE_CHAR_INDICATABLE		0x20
+#define BLE_CHAR_WRITABLE_SIGNED	0x40
+#define BLE_CHAR_RELIABLE_WRITE		0x80
+
+#define BLE_ATTR_MD_RIGHT_NOACCESS			0
+#define BLE_ATTR_MD_RIGHT_OPEN				1
+#define BLE_ATTR_MD_RIGHT_ENCRYPTED_NO_MITM	2
+#define BLE_ATTR_MD_RIGHT_ENCRYPTED_MITM	3
+
+function addChar(byval hService as integer, byval property as integer, byval uuidHandle as integer, byval dataLen as integer, byref initialValue$ as string) as integer
+	dim mdVal as integer
+	dim mdCccd as integer
+	dim rc as integer
+	dim handle as integer
+	
+	dim valueReadRight as integer
+	dim valueWriteRight as integer
+	if (property & BLE_CHAR_READABLE) != 0 then
+		valueReadRight = BLE_ATTR_MD_RIGHT_OPEN
+	endif
+	if (property & BLE_CHAR_WRITABLE) != 0 then
+		valueWriteRight = BLE_ATTR_MD_RIGHT_OPEN
+	endif
+	mdVal  = bleAttrMetaData(valueReadRight, valueWriteRight, dataLen, 0, rc)
+
+	if (property & (BLE_CHAR_NOTIFIABLE | BLE_CHAR_INDICATABLE) ) != 0 then
+		mdCccd = bleAttrMetaData(BLE_ATTR_MD_RIGHT_OPEN, BLE_ATTR_MD_RIGHT_OPEN, 2, 0, rc)
+	endif
+	rc = bleCharNew(property, uuidHandle, mdVal, 0, 0)
+	rc = bleCharCommit(hService, initialValue$, handle)
+
+	if DEBUG then
+		print "\naddChar#";rc;" handle=";integer.h'uuidHandle
+	endif
+endfunc handle
+
+
+dim sensorTemperature as integer
+dim sensorTempCccd as integer
+dim baseTemperature as integer
+dim heaterOutput as integer
+dim heaterOutputCccd as integer
+dim servoParamKp as integer
+dim servoParamKi as integer
+dim temperatureReference as integer
+dim heaterEnable as integer
+dim reflowState as integer
+dim reflowStateCccd as integer
+
+dim attr$ as string
+dim hSensorTemperature as integer
+dim hBaseTemperature as integer
+dim hTemperatureRef as integer
+dim hServoParams as integer
+dim hHeaterOutput as integer
+dim hHeaterEnable as integer
+dim hReflowState as integer
+attr$ = "\00\00\00\00"
+hSensorTemperature		= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_NOTIFIABLE, bleHandleUuid16(0xfff1), 4, attr$)
+hHeaterOutput			= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_NOTIFIABLE, bleHandleUuid16(0xfff6), 4, attr$)
+attr$ = "\00"
+hReflowState			= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_NOTIFIABLE, bleHandleUuid16(0xfff7), 1, attr$)
+attr$ = "\00\00\00\00"
+hBaseTemperature		= addChar(hService, BLE_CHAR_READABLE, bleHandleUuid16(0xfff2), 4, attr$)
+hTemperatureRef			= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_WRITABLE, bleHandleUuid16(0xfff3), 4, attr$)
+attr$ = "\00"
+hHeaterEnable			= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_WRITABLE, bleHandleUuid16(0xfff4), 1, attr$)
+attr$ = "\00\00\00\00\00\00\00\00"
+hServoParams			= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_WRITABLE, bleHandleUuid16(0xfff5), 8, attr$)
+attr$ = "\00\00\00\00"
+
+
+// start advertisement
+advReport$ = ""
+scanReport$ = ""
+peerAddr$ = ""
+rc = bleAdvRptInit(advReport$, 0x06, 1, 10)
+rc = bleAdvRptsCommit(advReport$, scanReport$)
+rc = bleAdvertStart(0, peerAddr$, 100, 0, 0)
+
+// Event handlers
+function handleBleMessage(ByVal msgId As Integer, ByVal ctx As Integer) As Integer
+	select msgId
+	case 0
+		Print "\nConnect ", ctx
+		rc = BleAuthenticate(ctx)
+		connection = ctx
+		rc = BleAdvertStop()
+		timerStart(0, 250, 1)
+	case 1
+		Print "\nDisconnect ", ctx
+		connection = 0
+		timerCancel(0)
+		rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+	case else
+		if DEBUG >= DEBUG_VERBOSE then
+			Print "\nUnknown message ", msgId
+		endif
+	endselect
+endfunc 1
+onevent EVBLEMSG call HandleBleMessage
+
+function handleBleCharVal(byval charHandle as integer, byval offset as integer, byval length as integer) as integer
+	dim a$
+	dim rc
+	if DEBUG >= 1 then
+		print "\nCHARVAL#";integer.h'charHandle;" ofs:";offset;" len:";length
+	endif
+	if charHandle == hServoParams then
+		if length == 8 then
+			rc = bleCharValueRead(charHandle, a$)
+			rc = bleDecode32(a$, servoParamKp, 0)
+			rc = bleDecode32(a$, servoParamKi, 4)
+		endif
+	elseif charHandle == hTemperatureRef then
+		if length == 4 then
+			rc = bleCharValueRead(charHandle, a$)
+			rc = bleDecode32(a$, temperatureReference, 0)
+		endif
+	elseif charHandle == hHeaterEnable then
+		if length == 1 then
+			rc = bleCharValueRead(charHandle, a$)
+			rc = bleDecodeU8(a$, heaterEnable, 0)
+		endif
+	endif
+endfunc 1
+onevent EVCHARVAL call handleBleCharVal
+
+function handleBleCccd(byval charHandle as integer, byval value as integer) as integer
+	if charHandle == hSensorTemperature then
+		sensorTempCccd = value
+	elseif charHandle == hHeaterOutput then
+		heaterOutputCccd = value
+	elseif charHandle == hReflowState then
+		reflowStateCccd = value
+	endif
+endfunc 1
+onevent EVCHARCCCD call handleBleCccd
+
+// Characteristics update timer
+function handleTimer0()
+	dim a$ as string
+	// Notify current temperature
+	rc = bleEncode32(a$, sensorTemperature, 0)
+	if sensorTempCccd & 1 then
+		rc = bleCharValueNotify(hSensorTemperature, a$)
+	else
+		rc = bleCharValueWrite(hSensorTemperature, a$)
+	endif
+	
+	rc = bleEncode32(a$, heaterOutput, 0)
+	if heaterOutputCccd & 1 then
+		rc = bleCharValueNotify(hHeaterOutput, a$)
+	else
+		rc = bleCharValueWrite(hHeaterOutput, a$)
+	endif
+	
+	rc = bleEncode8(a$, reflowState, 0)
+	if reflowStateCccd & 1 then
+		rc = bleCharValueNotify(hReflowState, a$)
+	else
+		rc = bleCharValueWrite(hReflowState, a$)
+	endif
+
+	rc = bleEncode32(a$, baseTemperature, 0)
+	rc = bleCharValueWrite(hBaseTemperature, a$)
+	
+	rc = bleSvcSetBattLevel(GetBatteryLeft())
+endfunc 1
+onevent EvTmr0 call handleTimer0
+
+// Heater servo timer
+#define FRAC_SERVOPARAM		8
+#define FRAC_TEMPERATURE	2
+#define FRAC_OUTPUT			(FRAC_SERVOPARAM+FRAC_TEMPERATURE)
+dim servoError[3] as integer
+dim output as integer
+dim prevHeaterEnable as integer
+
+#define STATE_IDLE		0
+#define STATE_WARMUP	1
+#define STATE_PREHEAT	2
+#define STATE_REFLOW	3
+#define	STATE_PEAK		4
+#define	STATE_COOLDOWN	5
+#define STATE_ERROR		255
+#define SERVO_TIMER_INTERVAL	100
+dim processCounter as integer
+dim preheatDuration as integer
+dim reflowDuration as integer
+dim reflowPeakDuration as integer
+dim preheatLower as integer
+dim preheatUpper as integer
+dim reflowPeak as integer
+dim prevState as integer
+preheatLower = 130 << FRAC_TEMPERATURE
+preheatUpper = 180 << FRAC_TEMPERATURE
+reflowPeak = 250 << FRAC_TEMPERATURE
+preheatDuration = 60 * 1000 / SERVO_TIMER_INTERVAL		// 60.0[s]
+reflowDuration  = 30 * 1000 / SERVO_TIMER_INTERVAL		// 30.0[s]
+reflowPeakDuration = 5 * 1000 / SERVO_TIMER_INTERVAL	// 5.0[s]
+
+function handleTimer1()
+	// Read current temperature
+	dim rc as integer
+	dim temperature as integer
+	dim base as integer
+	rc = readTemperature(temperature, base)
+
+	// Current state specific tasks.
+	select reflowState
+	case STATE_IDLE
+		processCounter = 0
+		if heaterEnable then
+			if preheatLower < temperature then
+				reflowState = STATE_ERROR
+				temperatureReference = 0
+			else
+				temperatureReference = preheatLower
+				reflowState = STATE_WARMUP
+			endif
+		endif
+	case STATE_WARMUP
+		if preheatLower <= temperature then
+			reflowState = STATE_PREHEAT
+			processCounter = 0
+		endif
+	case STATE_PREHEAT
+		if preheatDuration <= processCounter then
+			reflowState = STATE_REFLOW
+			processCounter = 0
+		else
+			temperatureReference = preheatLower + (preheatUpper - preheatLower)*processCounter/preheatDuration
+		endif
+	case STATE_REFLOW
+		if reflowDuration <= processCounter then
+			reflowState = STATE_PEAK
+			processCounter = 0
+		else
+			temperatureReference = preheatUpper + (reflowPeak - preheatUpper)*processCounter/reflowDuration
+		endif
+	case STATE_PEAK
+		if reflowPeakDuration <= processCounter then
+			reflowState = STATE_COOLDOWN
+		else
+			temperatureReference = reflowPeak
+		endif
+	case STATE_COOLDOWN
+		temperatureReference = 0
+		if temperature < preheatLower then
+			reflowState = STATE_IDLE
+		endif
+	case else
+		reflowState = STATE_ERROR
+	endselect
+	if !heaterEnable then
+		reflowState = STATE_IDLE
+	endif
+	if prevState != reflowState then
+		print "\nNewState:";prevState;"->";reflowState
+	endif
+	prevState = reflowState
+	processCounter = processCounter + 1
+
+	// Servo calculation
+	dim outputDiff as integer
+	dim errorDiff0 as integer
+	dim errorDiff1 as integer
+
+	servoError[2] = servoError[1]
+	servoError[1] = servoError[0]
+	servoError[0] = temperatureReference - temperature
+	errorDiff0 = servoError[0] - servoError[1]
+	errorDiff1 = servoError[1] - servoError[2]
+	outputDiff = servoParamKp*errorDiff0 + servoParamKi*servoError[0]
+
+	output = output + outputDiff
+
+	// update the heater output if heaterOutput is enabled. Otherwise set the heater output to 0.
+	
+	if heaterEnable != 0 then
+		if output < 0  then
+			output = 0
+		endif
+		if PWM_MAX_COUNT < (output >> FRAC_OUTPUT) then
+			output = PWM_MAX_COUNT << FRAC_OUTPUT
+		endif
+	else
+		output = 0
+	endif
+
+	dim outputIntegral as integer
+	outputIntegral = output >> FRAC_OUTPUT
+
+	setHeaterOutput(PIN_HEATER_UPPER, outputIntegral)
+	setHeaterOutput(PIN_HEATER_LOWER, outputIntegral>>1)
+
+	heaterOutput = output
+	sensorTemperature = temperature
+	baseTemperature = base
+endFunc 1
+onevent EvTmr1 call handleTimer1
+timerStart(1, 100, 1)
+
+// Wait events
+WaitEvent
