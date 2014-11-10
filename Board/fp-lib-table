@@ -1,3 +1,11 @@
 (fp_lib_table
+  (lib (name akiduki_connectors)(type KiCad)(uri "$(KIPRJMOD)\\akiduki_connectors.pretty")(options "")(descr ""))
+  (lib (name akiduki_inductors)(type KiCad)(uri "$(KIPRJMOD)\\akiduki_inductors.pretty")(options "")(descr ""))
+  (lib (name akiduki_power)(type KiCad)(uri "$(KIPRJMOD)\\akiduki_power.pretty")(options "")(descr ""))
+  (lib (name akiduki_switches)(type KiCad)(uri "$(KIPRJMOD)\\akiduki_switches.pretty")(options "")(descr ""))
+  (lib (name AVR32Board)(type KiCad)(uri "$(KIPRJMOD)\\AVR32Board.pretty")(options "")(descr ""))
   (lib (name BL600)(type KiCad)(uri "$(KIPRJMOD)\\BL600.pretty")(options "")(descr ""))
+  (lib (name Housings_JEITA)(type KiCad)(uri "$(KIPRJMOD)\\Housings_JEITA.pretty")(options "")(descr ""))
+  (lib (name mechanicalholes)(type KiCad)(uri "$(KIPRJMOD)\\mechanicalholes.pretty")(options "")(descr ""))
+  (lib (name TE_PolySW)(type KiCad)(uri "$(KIPRJMOD)\\TE_PolySW.pretty")(options "")(descr ""))
 )

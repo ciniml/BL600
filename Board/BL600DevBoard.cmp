@@ -1,0 +1,297 @@
+Cmp-Mod V01 Created by Cvpcb (2014-10-02 BZR 5162)-product   date = 2014/11/09 1:17:38
+
+BeginCmp
+TimeStamp = /545BB405;
+Reference = C1;
+ValeurCmp = 10n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A6280;
+Reference = C2;
+ValeurCmp = 10n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5196;
+Reference = C3;
+ValeurCmp = 18p;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A81A4;
+Reference = C4;
+ValeurCmp = 4.7u;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A813E;
+Reference = C5;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5412;
+Reference = C6;
+ValeurCmp = 18p;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A698A;
+Reference = C7;
+ValeurCmp = 10n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A7975;
+Reference = C8;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A6A2E;
+Reference = C9;
+ValeurCmp = 10n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545AB7B2;
+Reference = C10;
+ValeurCmp = 4.7u;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545AB7A6;
+Reference = C11;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545ABEA7;
+Reference = C12;
+ValeurCmp = 4.7u;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545ABE9B;
+Reference = C13;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545B9223;
+Reference = C14;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545B91F3;
+Reference = C15;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545B8713;
+Reference = C16;
+ValeurCmp = 100n;
+IdModule  = Capacitors_SMD:C_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545B9E50;
+Reference = CN1;
+ValeurCmp = Socket_BL600;
+IdModule  = BL600:SOCKET_BL600;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5F90;
+Reference = CON1;
+ValeurCmp = USB-MINI-B;
+IdModule  = AVR32Board:HIROSE_UX60SC-MB-5ST;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5ADD;
+Reference = D1;
+ValeurCmp = UDZV15B;
+IdModule  = Diodes_SMD:Diode-TUMD2;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A6938;
+Reference = D2;
+ValeurCmp = UDZV15B;
+IdModule  = Diodes_SMD:Diode-TUMD2;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5CE5;
+Reference = F1;
+ValeurCmp = RXEF050;
+IdModule  = TE_PolySW:RXEF050;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A5B54;
+Reference = FB1;
+ValeurCmp = 470/1A;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BF6B2;
+Reference = JP1;
+ValeurCmp = JUMPER;
+IdModule  = Connect:SIL-2;
+EndCmp
+
+BeginCmp
+TimeStamp = /545D20DE;
+Reference = P1;
+ValeurCmp = CONN_01X17;
+IdModule  = BL600:SIL-17;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BA3D3;
+Reference = P2;
+ValeurCmp = CONN_BL600_SWDIF;
+IdModule  = Connect:SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /545D041A;
+Reference = P3;
+ValeurCmp = CONN_01X17;
+IdModule  = BL600:SIL-17;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BBE9A;
+Reference = R1;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BBE66;
+Reference = R2;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BBD1B;
+Reference = R3;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BAED2;
+Reference = R4;
+ValeurCmp = 2k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A9814;
+Reference = R5;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A548E;
+Reference = R6;
+ValeurCmp = 51;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545B803A;
+Reference = R7;
+ValeurCmp = 12k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BC00F;
+Reference = R8;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545DBF06;
+Reference = R9;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545DC024;
+Reference = R10;
+ValeurCmp = 10k;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /545C114F;
+Reference = SW1;
+ValeurCmp = DIPSW_8;
+IdModule  = akiduki_switches:57D-0803;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BAE83;
+Reference = U1;
+ValeurCmp = 93C56;
+IdModule  = AVR32Board:SOT-23-6;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A4DB4;
+Reference = U2;
+ValeurCmp = FT232H;
+IdModule  = Housings_QFP:LQFP-48_7x7mm_Pitch0.5mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BB348;
+Reference = U3;
+ValeurCmp = TC7SZ125;
+IdModule  = Housings_JEITA:SC-74A;
+EndCmp
+
+BeginCmp
+TimeStamp = /545BBC92;
+Reference = U4;
+ValeurCmp = TC7SZ125;
+IdModule  = Housings_JEITA:SC-74A;
+EndCmp
+
+BeginCmp
+TimeStamp = /545A505D;
+Reference = X1;
+ValeurCmp = 12M;
+IdModule  = Crystals:Crystal_HC49-SD_SMD;
+EndCmp
+
+EndListe

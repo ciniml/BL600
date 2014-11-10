@@ -4,4 +4,9 @@ $CMP BL600
 D Laird BL600 Bluetooth Low Energy Module
 $ENDCMP
 #
+$CMP TC7SZ125
+D single gate tristate buffer IC
+K tristate,buffer
+$ENDCMP
+#
 #End Doc Library

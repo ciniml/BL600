@@ -33,7 +33,7 @@ LIBS:AVR32Board
 LIBS:VersaWriter
 LIBS:BL600
 LIBS:BL600BaseBoard-cache
-EELAYER 24 0
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
