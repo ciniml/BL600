@@ -2,12 +2,12 @@
 # BL600 firmware updating script using OpenOCD
 #
 
-source [find target/nrf51_stlink.tcl]
+source [find target/nrf51.cfg]
 
 set LICENSE_ADDRESS			0x3fc00
 set LICENSE_SIZE			1024
 set LAST_PROTECTED_BANK		79
-set UICR_PROTECT_ADDRESS	0x4001e504
+set NVMC_CONFIG_ADDRESS		0x4001e504
 set UICR_ADDRESS 			0x10001014
 set LOADER_ADDRESS			0x0003f000
 
@@ -49,8 +49,8 @@ proc bl600_unprotect {} {
 }
 # Enable writing to the UICR register.
 proc bl600_enable_uicr_write {} {
-	global UICR_PROTECT_ADDRESS
-	mww	$UICR_PROTECT_ADDRESS 0x00000001
+	global NVMC_CONFIG_ADDRESS
+	mww	$NVMC_CONFIG_ADDRESS 0x00000001
 }
 
 # Write nRF51822 software device image
@@ -82,4 +82,6 @@ proc bl600_write_app {IMAGE_FILE} {
 # 
 # Initialize session
 init
+reset halt
+
 
