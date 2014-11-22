@@ -1,8 +1,6 @@
-update=2014/04/20 1:09:34
+update=2014/11/12 2:14:55
 version=1
-last_client=pcbnew
-[general]
-version=1
+last_client=kicad
 [eeschema]
 version=1
 PageLayoutDescrFile=
@@ -93,3 +91,5 @@ LibName15=pga_sockets
 LibName16=valves
 LibName17=AVR32Board
 LibName18=BL600
+[general]
+version=1

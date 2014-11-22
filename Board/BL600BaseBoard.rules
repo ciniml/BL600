@@ -8,7 +8,7 @@
     (autoroute on)
     (postroute on)
     (vias on)
-    (via_costs 50)
+    (via_costs 200)
     (plane_via_costs 5)
     (start_ripup_costs 100)
     (start_pass_no 1)
@@ -73,7 +73,7 @@
     "/SIO_16" "/SIO_17" "/SIO_18" "/SIO_19" "/SIO_2" "/SIO_20" "/SIO_21" "/SIO_22"
     "/SIO_23" "/SIO_24" "/SIO_25" "/SIO_26" "/SIO_27" "/SIO_28" "/SIO_29" "/SIO_3"
     "/SIO_30" "/SIO_4" "/SIO_5" "/SIO_6" "/SIO_7" "/SIO_8" "/SIO_9" /SWDCLK
-    /nRESET "Net-<U1-Pad30>"
+    /nRESET
     (clearance_class default)
     (via_rule kicad_default)
     (rule

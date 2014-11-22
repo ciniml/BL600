@@ -39,10 +39,10 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
-Rev ""
-Comp ""
+Title "BL600DevBoard"
+Date "2014'年'11'月'12'日'"
+Rev "A"
+Comp "Kenta IDA"
 Comment1 ""
 Comment2 ""
 Comment3 ""
