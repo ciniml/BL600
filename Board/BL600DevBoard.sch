@@ -603,7 +603,7 @@ F 3 "" H 8450 1900 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 8250 1750 2    60   ~ 0
-SWDIO_RxD
+TDO_RTS#
 Text Label 8250 1850 2    60   ~ 0
 SWDCLK_TxD
 Text Label 7000 1950 2    60   ~ 0
@@ -675,7 +675,7 @@ F 3 "" H 6800 6050 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 8100 6100 2    60   ~ 0
-TDO_RTS#
+TDI_RxD
 Text Label 6800 5800 2    60   ~ 0
 SWDIO_OE
 Text Label 6800 5650 2    60   ~ 0
@@ -685,13 +685,13 @@ VCC3.3
 Text Label 8800 5800 0    60   ~ 0
 VCC3.3
 Text Label 8800 6250 0    60   ~ 0
-SWDIO_RxD
+TDO_RTS#
 Text Label 6500 2800 0    60   ~ 0
 SWDCLK_TxD
-Text Label 6500 2900 0    60   ~ 0
-SWDIO_RxD
 Text Label 6500 3000 0    60   ~ 0
 TDO_RTS#
+Text Label 6500 2900 0    60   ~ 0
+TDI_RxD
 Text Label 6500 4200 0    60   ~ 0
 SWDEN
 Text Label 6500 4300 0    60   ~ 0
@@ -1019,7 +1019,7 @@ Wire Wire Line
 Text Label 9900 5950 3    60   ~ 0
 SWDCLK_TxD
 Text Label 9650 5950 3    60   ~ 0
-SWDIO_RxD
+TDI_RxD
 Text Label 10400 5950 3    60   ~ 0
 TDO_RTS#
 Text Label 10150 5950 3    60   ~ 0
@@ -1265,4 +1265,8 @@ Wire Wire Line
 Wire Wire Line
 	6950 5250 7500 5250
 Connection ~ 7100 5250
+Text Label 5950 1250 1    60   ~ 0
+VCC3.3
+Text Label 5400 1250 1    60   ~ 0
+VCC3.3
 $EndSCHEMATC
