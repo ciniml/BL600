@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by Cvpcb (2014-10-02 BZR 5162)-product   date = 2014/11/09 1:17:38
+Cmp-Mod V01 Created by Cvpcb (2014-10-02 BZR 5162)-product   date = 2014/12/01 3:18:07
 
 BeginCmp
 TimeStamp = /545BB405;
@@ -121,7 +121,7 @@ EndCmp
 
 BeginCmp
 TimeStamp = /545A5F90;
-Reference = CON1;
+Reference = CN2;
 ValeurCmp = USB-MINI-B;
 IdModule  = AVR32Board:HIROSE_UX60SC-MB-5ST;
 EndCmp
@@ -150,6 +150,20 @@ EndCmp
 BeginCmp
 TimeStamp = /545A5B54;
 Reference = FB1;
+ValeurCmp = 470/1A;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /547B5812;
+Reference = FB2;
+ValeurCmp = 470/1A;
+IdModule  = Resistors_SMD:R_0603;
+EndCmp
+
+BeginCmp
+TimeStamp = /547B5968;
+Reference = FB3;
 ValeurCmp = 470/1A;
 IdModule  = Resistors_SMD:R_0603;
 EndCmp
@@ -239,20 +253,6 @@ IdModule  = Resistors_SMD:R_0603;
 EndCmp
 
 BeginCmp
-TimeStamp = /545DBF06;
-Reference = R9;
-ValeurCmp = 10k;
-IdModule  = Resistors_SMD:R_0603;
-EndCmp
-
-BeginCmp
-TimeStamp = /545DC024;
-Reference = R10;
-ValeurCmp = 10k;
-IdModule  = Resistors_SMD:R_0603;
-EndCmp
-
-BeginCmp
 TimeStamp = /545C114F;
 Reference = SW1;
 ValeurCmp = DIPSW_8;
@@ -271,13 +271,6 @@ TimeStamp = /545A4DB4;
 Reference = U2;
 ValeurCmp = FT232H;
 IdModule  = Housings_QFP:LQFP-48_7x7mm_Pitch0.5mm;
-EndCmp
-
-BeginCmp
-TimeStamp = /545BB348;
-Reference = U3;
-ValeurCmp = TC7SZ125;
-IdModule  = Housings_JEITA:SC-74A;
 EndCmp
 
 BeginCmp
