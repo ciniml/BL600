@@ -8,6 +8,7 @@ set LICENSE_ADDRESS			0x3fc00
 set LICENSE_SIZE			1024
 set LAST_PROTECTED_BANK		79
 set NVMC_CONFIG_ADDRESS		0x4001e504
+set NVMC_ERASEUICR_ADDRESS	0x4001e514
 set UICR_ADDRESS 			0x10001014
 set LOADER_ADDRESS			0x0003f000
 
@@ -53,6 +54,14 @@ proc bl600_enable_uicr_write {} {
 	mww	$NVMC_CONFIG_ADDRESS 0x00000001
 }
 
+# Erase the UICR register.
+proc bl600_erase_uicr {} {
+	global NVMC_CONFIG_ADDRESS
+	global NVMC_ERASEUICR_ADDRESS
+	mww	$NVMC_CONFIG_ADDRESS 0x00000002
+	mww $NVMC_ERASEUICR_ADDRESS 0x00000001
+}
+
 # Write nRF51822 software device image
 proc bl600_write_soft_device {IMAGE_FILE} {
 	global UICR_ADDRESS
@@ -79,6 +88,23 @@ proc bl600_write_app {IMAGE_FILE} {
 	return
 } 
 
+proc bl600_write_only {IMAGE_FILE} {
+	global UICR_ADDRESS
+
+	echo "Writing to the target..."
+	flash write_image erase $IMAGE_FILE 0 ihex
+	verify_image $IMAGE_FILE
+	
+	shutdown
+}
+
+proc bl600_write_and_run {IMAGE_FILE} {
+	echo "Writing to the target..."
+	flash write_image erase $IMAGE_FILE 0 ihex
+	verify_image $IMAGE_FILE
+	
+	reset run
+}
 # 
 # Initialize session
 init
