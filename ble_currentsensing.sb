@@ -1,0 +1,178 @@
+Dim rc	// result code
+Dim advReport$
+Dim scanReport$
+Dim peerAddr$
+Dim connection
+
+#define DEBUG_VERBOSE 3
+#define DEBUG_INFO 1
+#define DEBUG_NONE 0
+#define DEBUG DEBUG_INFO
+
+#define MAX_POWER_VOLTAGE	3000
+function getBatteryLeft()
+	dim batteryLeft as integer
+	batteryLeft = readPwrSupplyMv() * 100 / MAX_POWER_VOLTAGE
+	if batteryLeft > 100 then
+		batteryLeft = 100
+	endif
+endfunc batteryLeft
+
+// GPIO configuration
+#define PIN_SENSOR	6
+#define PIN_LED		7
+
+rc = gpioSetFunc(PIN_SENSOR, 3, 0x13)	// ANALOG_IN, 1/3 scaling
+rc = gpioSetFunc(PIN_LED, 2, 0)			// Digital output
+
+// initialize services
+rc = bleGapSvcInit("CurrentSensor", 0, 256, 10000, 100000, 32000000, 0)
+rc = bleSvcRegBattery(GetBatteryLeft(), 0)
+rc = bleSvcRegDevInfo("@ciniml", "CurrentSensor", "", "", "", "", "", "")
+//
+dim hService as integer
+rc = bleSvcCommit(1, bleHandleUuid16(0xfff0), hService)
+
+#define BLE_CHAR_BROADCAST			0x01
+#define BLE_CHAR_READABLE			0x02
+#define BLE_CHAR_WRITABLE_WO_RES	0x04
+#define BLE_CHAR_WRITABLE 			0x08
+#define BLE_CHAR_NOTIFIABLE			0x10
+#define BLE_CHAR_INDICATABLE		0x20
+#define BLE_CHAR_WRITABLE_SIGNED	0x40
+#define BLE_CHAR_RELIABLE_WRITE		0x80
+
+#define BLE_ATTR_MD_RIGHT_NOACCESS			0
+#define BLE_ATTR_MD_RIGHT_OPEN				1
+#define BLE_ATTR_MD_RIGHT_ENCRYPTED_NO_MITM	2
+#define BLE_ATTR_MD_RIGHT_ENCRYPTED_MITM	3
+
+function addChar(byval hService as integer, byval property as integer, byval uuidHandle as integer, byval dataLen as integer, byref initialValue$ as string) as integer
+	dim mdVal as integer
+	dim mdCccd as integer
+	dim rc as integer
+	dim handle as integer
+	
+	dim valueReadRight as integer
+	dim valueWriteRight as integer
+	if (property & BLE_CHAR_READABLE) != 0 then
+		valueReadRight = BLE_ATTR_MD_RIGHT_OPEN
+	endif
+	if (property & BLE_CHAR_WRITABLE) != 0 then
+		valueWriteRight = BLE_ATTR_MD_RIGHT_OPEN
+	endif
+	mdVal  = bleAttrMetaData(valueReadRight, valueWriteRight, dataLen, 0, rc)
+
+	if (property & (BLE_CHAR_NOTIFIABLE | BLE_CHAR_INDICATABLE) ) != 0 then
+		mdCccd = bleAttrMetaData(BLE_ATTR_MD_RIGHT_OPEN, BLE_ATTR_MD_RIGHT_OPEN, 2, 0, rc)
+	endif
+	rc = bleCharNew(property, uuidHandle, mdVal, 0, 0)
+	rc = bleCharCommit(hService, initialValue$, handle)
+
+	if DEBUG then
+		print "\naddChar#";rc;" handle=";integer.h'uuidHandle
+	endif
+endfunc handle
+
+
+dim currentSensor as integer
+dim currentSensorCccd as integer
+
+dim attr$ as string
+dim hCurrentSensor as integer
+attr$ = "\00\00\00\00"
+hCurrentSensor		= addChar(hService, BLE_CHAR_READABLE | BLE_CHAR_NOTIFIABLE, bleHandleUuid16(0xfff1), 4, attr$)
+// start advertisement
+advReport$ = ""
+scanReport$ = ""
+peerAddr$ = ""
+rc = bleAdvRptInit(advReport$, 0x06, 1, 10)
+rc = bleAdvRptsCommit(advReport$, scanReport$)
+rc = bleAdvertStart(0, peerAddr$, 100, 0, 0)
+
+print "\nBegin advertise"
+
+// Event handlers
+function handleBleMessage(ByVal msgId As Integer, ByVal ctx As Integer) As Integer
+	select msgId
+	case 0
+		Print "\nConnect ", ctx
+		rc = BleAuthenticate(ctx)
+		connection = ctx
+		rc = BleAdvertStop()
+		timerStart(0, 1000, 1)
+	case 1
+		Print "\nDisconnect ", ctx
+		connection = 0
+		timerCancel(0)
+		rc = BleAdvertStart(0, peerAddr$, 100, 0, 0)
+	case else
+		if DEBUG >= DEBUG_VERBOSE then
+			Print "\nUnknown message ", msgId
+		endif
+	endselect
+endfunc 1
+onevent EVBLEMSG call HandleBleMessage
+
+function handleBleCharVal(byval charHandle as integer, byval offset as integer, byval length as integer) as integer
+	dim a$
+	dim rc
+	if DEBUG >= 1 then
+		print "\nCHARVAL#";integer.h'charHandle;" ofs:";offset;" len:";length
+	endif
+endfunc 1
+onevent EVCHARVAL call handleBleCharVal
+
+function handleBleCccd(byval charHandle as integer, byval value as integer) as integer
+	if charHandle == hCurrentSensor then
+		currentSensorCccd = value
+	endif
+endfunc 1
+onevent EVCHARCCCD call handleBleCccd
+
+// Characteristics update timer
+function handleTimer0()
+	dim a$ as string
+	// Notify current sensor
+	rc = bleEncode32(a$, currentSensor, 0)
+	if currentSensorCccd & 1 then
+		rc = bleCharValueNotify(hCurrentSensor, a$)
+	else
+		rc = bleCharValueWrite(hCurrentSensor, a$)
+	endif
+	
+	rc = bleSvcSetBattLevel(GetBatteryLeft())
+endfunc 1
+onevent EvTmr0 call handleTimer0
+
+#define NUM_SAMPLES	4
+dim samples[NUM_SAMPLES] as integer
+dim sampleIndex as integer
+sampleIndex = 0
+
+// Sensor read timer.
+function handleTimer1()
+	// Read sensor 
+	dim sensorValue as integer
+	sensorValue = 0
+	sensorValue = sensorValue + gpioRead(PIN_SENSOR)
+	sensorValue = sensorValue + gpioRead(PIN_SENSOR)
+	sensorValue = sensorValue + gpioRead(PIN_SENSOR)
+	sensorValue = sensorValue + gpioRead(PIN_SENSOR)
+
+//	samples[sampleIndex] = sensorValue
+//	sampleIndex = (sampleIndex + 1) & (NUM_SAMPLES - 1)
+//
+//	sensorValue = 0
+//	dim i as integer
+//	for i = 0 to NUM_SAMPLES - 1
+//		sensorValue = sensorValue + samples[i]
+//	next
+
+	currentSensor = sensorValue
+endFunc 1
+onevent EvTmr1 call handleTimer1
+timerStart(1, 10, 1)
+
+// Wait events
+WaitEvent
